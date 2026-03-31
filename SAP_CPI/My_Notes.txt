@@ -1,0 +1,63 @@
+Project 1
+
+Scenario: Order API with Validation
+
+➡️ A client sends order data via API
+CPI Should
+1. Validate the payload
+2. Reject invalid data
+3. Accept valid data and respond
+
+➡️ In this scenario we use HTTP Adapter (Sender) but why?
+
+Reason 1: Client is calling an API
+That means:
+> Request comes via API call
+> API = HTTP/HTTPS Protocol
+---
+Reason 2: Real-world usage
+In real projects:
+> Frontend apps
+> Mobile apps
+>External systems
+⏩All communicate using REST APIs
+---
+Reason 3:Supports JSON
+> HTTP Adapter handles JSON easily
+> No need for XML-only formats like SOAP
+
+➡️ Script
+
+import com.sap.gateway.ip.core.customdev.util.Message
+import groovy.json.JsonSlurper
+
+def Message processData(Message message) {
+
+    def body = message.getBody(String)
+    def json = new JsonSlurper().parseText(body)
+
+    def isValid = true
+    def errorMsg = ""
+
+    if (!json.orderId) {
+        isValid = false
+        errorMsg += "Missing orderId. "
+    }
+
+    if (!json.customerName) {
+        isValid = false
+        errorMsg += "Missing customerName. "
+    }
+
+    if (!json.amount || json.amount <= 0) {
+        isValid = false
+        errorMsg += "Invalid amount. "
+    }
+
+    // ✅ Only set properties
+    message.setProperty("isValid", isValid.toString())
+    message.setProperty("errorMsg", errorMsg)
+
+    // ❗ DO NOT change body
+    return message
+}
